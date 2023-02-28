@@ -1,38 +1,37 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ProductsController } from './controllers/products.controller';
-import { CategoriesController } from './controllers/categories.controller';
 import { OrdersController } from './controllers/orders.controller';
-import { UsersController } from './controllers/users.controller';
-import { CustomersController } from './controllers/customers.controller';
-import { BrandsController } from './controllers/brands.controller';
-import { ProductsService } from './services/products.service';
-import { CategoriesService } from './services/categories.service';
 import { OrdersService } from './services/orders.service';
-import { UsersService } from './services/users.service';
-import { BrandsService } from './services/brands.service';
-import { CustomersService } from './services/customers.service';
+import { UsersModule } from './users/users.module';
+import { ProductsModule } from './products/products.module';
+import { HttpModule, HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
+
+const API_KEY = '12345678';
+const API_KEY_PROD = 'EHDN12345';
 
 @Module({
-  imports: [],
-  controllers: [
-    AppController,
-    ProductsController,
-    CategoriesController,
-    OrdersController,
-    UsersController,
-    CustomersController,
-    BrandsController,
-  ],
+  imports: [UsersModule, ProductsModule, HttpModule],
+  controllers: [AppController, OrdersController],
   providers: [
     AppService,
-    ProductsService,
-    CategoriesService,
     OrdersService,
-    UsersService,
-    BrandsService,
-    CustomersService,
+    {
+      provide: 'API_KEY',
+      useValue: process.env.NODE_ENV === 'prod' ? API_KEY_PROD : API_KEY,
+    },
+    {
+      provide: 'TASKS',
+      inject: [HttpService],
+      useFactory: async (http: HttpService) => {
+        const tasks$ = await http.get(
+          'https://jsonplaceholder.typicode.com/todos',
+        );
+        const data = await (await firstValueFrom(tasks$)).data;
+        return data;
+      },
+    },
   ],
 })
 export class AppModule {}

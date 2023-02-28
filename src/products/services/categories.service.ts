@@ -1,8 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Category } from '../entities/category.entity';
+import { CreateCategoryDto, UpdateCategoryDto } from '../dto/category.dtos';
 
 @Injectable()
 export class CategoriesService {
-  private categories = [
+  private categories: Category[] = [
     {
       id: 1,
       name: 'categoria 1',
@@ -31,14 +33,14 @@ export class CategoriesService {
     return category;
   }
 
-  create(payload: any) {
+  create(payload: CreateCategoryDto) {
     const id = this.sizeCategories + 1;
     const newCategory = { id, ...payload };
     this.categories = [...this.categories, newCategory];
     return newCategory;
   }
 
-  update(payload: any, id: number) {
+  update(payload: UpdateCategoryDto, id: number) {
     const idx = this.categories.findIndex((category) => category.id === id);
     const hasIdx = idx >= 0;
     if (!hasIdx) {
@@ -56,6 +58,6 @@ export class CategoriesService {
       throw new NotFoundException(`Category #${id} not found`);
     }
     this.categories.splice(idx, 1);
-    return this.categories;
+    return true;
   }
 }
